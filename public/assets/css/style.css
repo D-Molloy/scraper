@@ -1,0 +1,24 @@
+/* font-family: 'Patua One', cursive;
+font-family: 'Open Sans', sans-serif; */
+body {
+    background-color: #169B62;
+}
+
+.title-main {
+    font-family: 'Patua One', cursive;
+    color: #FF883E;
+}
+
+.title-tag {
+    font-family: 'Open Sans', sans-serif;
+    font-style: italic;
+    color: rgb(0, 0, 0);
+}
+
+div.collapsible-body {
+    background-color: #d8d8d8
+}
+
+.collapsible-header {
+    font-size: 20px;
+}
