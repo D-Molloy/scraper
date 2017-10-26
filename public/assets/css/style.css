@@ -20,6 +20,11 @@ body {
     color: rgb(0, 0, 0);
 }
 
+#get-news {
+    margin-top:30px;
+    margin-bottom:30px;
+}
+
 div.collapsible-body {
     background-color: #ececec
 }
@@ -38,4 +43,28 @@ div.collapsible-body {
 
 div.container.center-align {
     margin-bottom: 10px;
+}
+
+.results-div {
+    background-color: white;
+}
+
+.results-div:hover{
+    text-decoration: underline;
+}
+
+.res-image-div,
+img {
+    max-height: 100px;
+    max-width: 100px;
+}
+
+.res-headline{
+    font-size: 20px;
+    color: black;
+}
+
+.res-summary {
+    font-style: italic;
+    color: black;
 }

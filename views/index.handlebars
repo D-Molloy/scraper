@@ -1,49 +1,34 @@
 <div class="title-div center-align">
-    <p class="title-main"><span class="green-text">Ireland</span><span class="white-text">Up</span><span class="orange-text">date</span></p>
+    <p class="title-main">
+        <span class="green-text">Ireland</span>
+        <span class="white-text">Up</span>
+        <span class="orange-text">date</span>
+    </p>
     <h5 class="title-tag">"All the Irish news you'll 'Eire' need!"</h5>
+</div>
+<div class="button-div center">
+    <button class="waves-effect waves-light btn-large hoverable" id="get-news">Get the news!</button>
 </div>
 
 <div class="news container">
     <div class="divider"></div>
-    <ul class="collapsible" data-collapsible="expandable">
+    <ul class="collapsible" data-collapsible="accordion">
         <li>
             <div class="collapsible-header">
                 The Irish Times</div>
             <div class="collapsible-body">
-                <table class="highlight">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Item Name</th>
-                            <th>Item Price</th>
-                        </tr>
-                    </thead>
+                <div id="irish-times-results" class="times-results">
 
-                    <tbody>
-                        <tr>
-                            <td>Alvin</td>
-                            <td>Eclair</td>
-                            <td>$0.87</td>
-                        </tr>
-                        <tr>
-                            <td>Alan</td>
-                            <td>Jellybean</td>
-                            <td>$3.76</td>
-                        </tr>
-                        <tr>
-                            <td>Jonathan</td>
-                            <td>Lollipop</td>
-                            <td>$7.00</td>
-                        </tr>
-                    </tbody>
-                </table>
+                </div>
             </div>
         </li>
         <li>
-            <div class="collapsible-header">
+            <div class="collapsible-header" id="ind-header">
                 The Irish Independent</div>
             <div class="collapsible-body">
-                <span>Lorem ipsum dolor sit amet.</span>
+                <div id="ind-results">
+
+                </div>
             </div>
         </li>
         <li>
@@ -57,14 +42,9 @@
             <div class="collapsible-header">
                 Midwest Irish Radio</div>
             <div class="collapsible-body">
-                <span>Lorem ipsum dolor sit amet.</span>
-            </div>
-        </li>
-        <li>
-            <div class="collapsible-header">
-                /r/Ireland</div>
-            <div class="collapsible-body">
-                <span>Lorem ipsum dolor sit amet.</span>
+                <div id="midwest-results">
+
+                </div>
             </div>
         </li>
     </ul>
