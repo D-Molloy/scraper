@@ -53,8 +53,9 @@ mongoose.connect("mongodb://localhost/updateIreland", {
 // =============================================================
 app.get("/", function(req, res) {
   //render the response using handlebars
-  res.render("index");
+  return res.render("index");
 });
+
 
 app.get("/scrape", function(req, res) {
   //delete the collections before searching
@@ -62,7 +63,8 @@ app.get("/scrape", function(req, res) {
     console.log("Articles collection removed");
   });
 
-  axios.get("https://www.independent.ie/irish-news/news/")
+  axios
+    .get("https://www.independent.ie/irish-news/news/")
     .then(function(response) {
       // Then, we load that into cheerio and save it to $ for a shorthand selector
       var $ = cheerio.load(response.data);
@@ -85,137 +87,147 @@ app.get("/scrape", function(req, res) {
         db.Article
           .create(result)
           .then(function(dbArticle) {
-            res.json(dbArticle);
+            return res.json(dbArticle);
           })
           .catch(function(err) {
-            console.log("Error! Error!");
+            console.log("independent Error!");
             // If an error occurred, send it to the clients
-            res.json(err);
+            return res.json(err);
           });
       }); //end w29.each
+    })
+    .catch(function(err) {
+      console.log("Unable to scrape The Independent.");
     }); //end IrishInd axios
 
-  axios.get("https://www.irishtimes.com/news/ireland").then(function(response) {
-    // Then, we load that into cheerio and save it to $ for a shorthand selector
-    var $ = cheerio.load(response.data);
-    // console.log(response);
-    $(".span4").each(function(i, element) {
-      var result = {};
+  axios
+    .get("https://www.irishtimes.com/news/ireland")
+    .then(function(response) {
+      // Then, we load that into cheerio and save it to $ for a shorthand selector
+      var $ = cheerio.load(response.data);
+      // console.log(response);
+      $(".span4").each(function(i, element) {
+        var result = {};
 
-      result.headline = $(this)
-        .find(".h2")
-        .text()
-        .trim();
-      // console.log("result.headline: "+result.headline);
-
-      result.summary = $(this)
-        .find("p")
-        .children("a")
-        .text()
-        .trim();
-      // console.log("result.summary: "+result.summary);
-
-      let concatLink =
-        "https://www.irishtimes.com" +
-        $(this)
-          .children("a")
-          .attr("href")
+        result.headline = $(this)
+          .find(".h2")
+          .text()
           .trim();
-      // console.log("concatLink: "+concatLink);
-      result.link = concatLink;
-      result.source = "times";
+        // console.log("result.headline: "+result.headline);
 
-      db.Article
-        .create(result)
-        .then(function(dbArticle) {
-          res.json(dbArticle);
-        })
-        .catch(function(err) {
-          console.log("Error! Error!");
-          // If an error occurred, send it to the clients
-          res.json(err);
-        });
-    }); //end w29.each
-  }); //end IrishTimes axios
-  axios.get("http://www.midwestradio.ie/index.php/news").then(function(response) {
+        result.summary = $(this)
+          .find("p")
+          .children("a")
+          .text()
+          .trim();
+        // console.log("result.summary: "+result.summary);
+
+        let concatLink =
+          "https://www.irishtimes.com" +
+          $(this)
+            .children("a")
+            .attr("href")
+            .trim();
+        // console.log("concatLink: "+concatLink);
+        result.link = concatLink;
+        result.source = "times";
+
+        db.Article
+          .create(result)
+          .then(function(dbArticle) {
+            return res.json(dbArticle);
+          })
+          .catch(function(err) {
+            console.log("times Error!");
+            // If an error occurred, send it to the clients
+            return res.json(err);
+          });
+      }); //end w29.each
+    })
+    .catch(function(err) {
+      console.log("Unable to scrape The Irish Times.");
+    }); //end IrishTimes axios
+  axios
+    .get("http://www.midwestradio.ie/index.php/news")
+    .then(function(response) {
+      // Then, we load that into cheerio and save it to $ for a shorthand selector
+      var $ = cheerio.load(response.data);
+      // console.log(response);
+      $(".list-title").each(function(i, element) {
+        var result = {};
+
+        result.headline = $(this)
+          .children("a")
+          .text()
+          .trim();
+        // console.log("result.headline: "+result.headline);
+
+        let concatLink =
+          "http://www.midwestradio.ie" +
+          $(this)
+            .children("a")
+            .attr("href");
+        // console.log("concatLink: "+concatLink);
+        result.link = concatLink;
+        result.source = "midwest";
+
+        db.Article
+          .create(result)
+          .then(function(dbArticle) {
+            return res.json(dbArticle);
+          })
+          .catch(function(err) {
+            console.log("midwest Error!");
+            // If an error occurred, send it to the clients
+            return res.json(err);
+          });
+      }); //end w29.each
+    }) .catch(function(err){
+      console.log("Unable to scrape Midwest Radio.")
+  }) //end midwest axios
+
+  axios.get("https://www.rte.ie/news/ireland/").then(function(response) {
     // Then, we load that into cheerio and save it to $ for a shorthand selector
     var $ = cheerio.load(response.data);
     // console.log(response);
-    $(".list-title").each(function(i, element) {
+    $(".pillar-news").each(function(i, element) {
       var result = {};
 
       result.headline = $(this)
-        .children('a')
+        .find(".underline")
         .text()
         .trim();
-      // console.log("result.headline: "+result.headline);
-
+      // console.log("result.headline: " + result.headline);
 
       let concatLink =
-        "http://www.midwestradio.ie" +
+        "https://www.rte.ie" +
         $(this)
           .children("a")
           .attr("href");
-      // console.log("concatLink: "+concatLink);
+      // console.log("concatLink: " + concatLink);
       result.link = concatLink;
-      result.source = "midwest";
+      result.source = "rte";
 
-      db.Article
-        .create(result)
-        .then(function(dbArticle) {
-          res.json(dbArticle);
-        })
-        .catch(function(err) {
-          console.log("Error! Error!");
-          // If an error occurred, send it to the clients
-          res.json(err);
-        });
+      if (
+        $(this)
+          .children("a")
+          .attr("href") != undefined
+      ) {
+        db.Article
+          .create(result)
+          .then(function(dbArticle) {
+            return res.json(dbArticle);
+          })
+          .catch(function(err) {
+            console.log("rte Error!");
+            // If an error occurred, send it to the clients
+            return res.json(err);
+          });
+      }
     }); //end w29.each
-  }); //end midwest axios
-
-axios.get("https://www.rte.ie/news/ireland/").then(function(response) {
-  // Then, we load that into cheerio and save it to $ for a shorthand selector
-  var $ = cheerio.load(response.data);
-  // console.log(response);
-  $(".pillar-news").each(function(i, element) {
-    var result = {};
-
-    result.headline = $(this)
-      .find(".underline")
-      .text()
-      .trim();
-    // console.log("result.headline: " + result.headline);
-
-    let concatLink =
-      "https://www.rte.ie" +
-      $(this)
-        .children("a")
-        .attr("href");
-    // console.log("concatLink: " + concatLink);
-    result.link = concatLink;
-    result.source = "rte";
-
-    if (
-      $(this)
-        .children("a")
-        .attr("href") != undefined
-    ) {
-      db.Article
-        .create(result)
-        .then(function(dbArticle) {
-          res.json(dbArticle);
-        })
-        .catch(function(err) {
-          console.log("Error! Error!");
-          // If an error occurred, send it to the clients
-          res.json(err);
-        });
-    }
-  }); //end w29.each
-}); //end rte axios
-
-
-  
+  }).catch(function(err){
+    console.log("Unable to scrape RTE.")
+}) //end rte axios
 });
 
 app.get("/articles", function(req, res) {
@@ -223,41 +235,13 @@ app.get("/articles", function(req, res) {
     .find({})
     .then(function(dbIrishTimes) {
       // If all Notes are successfully found, send them back to the client
-      res.json(dbIrishTimes);
+      return res.json(dbIrishTimes);
     })
     .catch(function(err) {
       // If an error occurs, send the error back to the client
-      res.json(err);
+      return res.json(err);
     });
 });
-
-// Route for getting all Irish Independent articles from the db
-// app.get("/independent", function(req, res) {
-//   db.IrishInd
-//     .find({})
-//     .then(function(dbIrishInd) {
-//       // If all Notes are successfully found, send them back to the client
-//       res.json(dbIrishInd);
-//     })
-//     .catch(function(err) {
-//       // If an error occurs, send the error back to the client
-//       res.json(err);
-//     });
-// });
-
-// // Route for getting all Irish Times articles from the db
-// app.get("/times", function(req, res) {
-//   db.IrishTimes
-//     .find({})
-//     .then(function(dbIrishTimes) {
-//       // If all Notes are successfully found, send them back to the client
-//       res.json(dbIrishTimes);
-//     })
-//     .catch(function(err) {
-//       // If an error occurs, send the error back to the client
-//       res.json(err);
-//     });
-// });
 
 //start the express server
 app.listen(port, function() {
