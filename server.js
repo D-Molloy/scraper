@@ -62,15 +62,7 @@ app.get("/scrape", function(req, res) {
     console.log("Articles collection removed");
   });
 
-  // db.IrishInd.remove({}, function(err) {
-  //   console.log("IrishInd collection removed");
-  // });
-  // db.IrishTimes.remove({}, function(err) {
-  //   console.log("IrishTimes collection removed");
-  // });
-
-  axios
-    .get("https://www.independent.ie/irish-news/news/")
+  axios.get("https://www.independent.ie/irish-news/news/")
     .then(function(response) {
       // Then, we load that into cheerio and save it to $ for a shorthand selector
       var $ = cheerio.load(response.data);
@@ -145,7 +137,6 @@ app.get("/scrape", function(req, res) {
         });
     }); //end w29.each
   }); //end IrishTimes axios
-
   axios.get("http://www.midwestradio.ie/index.php/news").then(function(response) {
     // Then, we load that into cheerio and save it to $ for a shorthand selector
     var $ = cheerio.load(response.data);
@@ -181,6 +172,50 @@ app.get("/scrape", function(req, res) {
         });
     }); //end w29.each
   }); //end midwest axios
+
+axios.get("https://www.rte.ie/news/ireland/").then(function(response) {
+  // Then, we load that into cheerio and save it to $ for a shorthand selector
+  var $ = cheerio.load(response.data);
+  // console.log(response);
+  $(".pillar-news").each(function(i, element) {
+    var result = {};
+
+    result.headline = $(this)
+      .find(".underline")
+      .text()
+      .trim();
+    // console.log("result.headline: " + result.headline);
+
+    let concatLink =
+      "https://www.rte.ie" +
+      $(this)
+        .children("a")
+        .attr("href");
+    // console.log("concatLink: " + concatLink);
+    result.link = concatLink;
+    result.source = "rte";
+
+    if (
+      $(this)
+        .children("a")
+        .attr("href") != undefined
+    ) {
+      db.Article
+        .create(result)
+        .then(function(dbArticle) {
+          res.json(dbArticle);
+        })
+        .catch(function(err) {
+          console.log("Error! Error!");
+          // If an error occurred, send it to the clients
+          res.json(err);
+        });
+    }
+  }); //end w29.each
+}); //end rte axios
+
+
+  
 });
 
 app.get("/articles", function(req, res) {
