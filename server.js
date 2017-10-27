@@ -41,7 +41,7 @@ var MONGODB_URI =
 // Set mongoose to leverage built in JavaScript ES6 Promises
 mongoose.Promise = Promise;
 // Connect to the Mongo DB
-mongoose.connect("mongodb://localhost/updateIreland", {
+mongoose.connect(MONGODB_URI, {
   useMongoClient: true
 });
 
