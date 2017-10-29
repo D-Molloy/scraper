@@ -1,28 +1,34 @@
 
 $(document).ready(function() {
+  //materialize css initialization for the collapsible tables
   $(".collapsible").collapsible();
+  //event handler for the "Get the News!" button
   $("button").on("click", function() {
+    //empty the results divs after the button is clicked
+    $("#times-results").empty();
     $("#ind-results").empty();
-    $("#irish-times-results").empty();
     $("#midwest-results").empty();
-    //add rte div
-
-    // alert("clicked!");
+    $("#rte-results").empty();
+    //call the /scrape route to get the article data
     $.ajax({
       method: "GET",
       url: "/scrape"
     }).done(function(data) {
+      //once the scrape is done, wait one second and then call the populateDivs function
       setTimeout(populateDivs, 1 * 1000);
-
     }); //end done
   }); //end event handler
 });
 
-
+//populateDivs takes the scrape data, builds the divs for each article and adds them to the DOM
 function populateDivs(){
+  //API call to articles to get all the scraped data
   $.getJSON("/articles", function(data) {
+    //show the number of articles found
     $('.article-stats').text(`${data.length} articles found.`)
+    //iterate through the article data
     for (var i = 0; i < data.length; i++) {
+      //find Irish Times articles and add them to the DOM
       if (data[i].source === "times") {
         $("#times-results").append(
           "<a href=" +
@@ -33,7 +39,9 @@ function populateDivs(){
             data[i].summary +
             "</p></div></a>"
         );
-      } else if (data[i].source == "independent") {
+      }
+      //find Irish Independent articles and add them to the DOM 
+      else if (data[i].source == "independent") {
         // Display the apropos information on the page
         $("#ind-results").append(
           "<a href=" +
@@ -44,7 +52,9 @@ function populateDivs(){
             data[i].summary +
             "</p></div></a>"
         );
-      } else if (data[i].source === "rte") {
+      } 
+      //find RTE articles and add them to the DOM
+      else if (data[i].source === "rte") {
         $("#rte-results").append(
           "<a href=" +
             data[i].link +
@@ -52,7 +62,9 @@ function populateDivs(){
             data[i].headline +
             "</p></div></a>"
         );
-      } else if (data[i].source === "midwest") {
+      } 
+      //find Midwest articles and add them to the DOM
+      else if (data[i].source === "midwest") {
         $("#midwest-results").append(
           "<a href=" +
             data[i].link +
@@ -61,7 +73,6 @@ function populateDivs(){
             "</p></div></a>"
         );
       };;
-
     }//end for loop
   }); //end getjson
-}
+};//end populateDivs

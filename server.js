@@ -6,13 +6,15 @@
 var express = require("express");
 var bodyParser = require("body-parser");
 var mongoose = require("mongoose");
-// Require all models
+var logger = require("morgan");
+// Require all models (one in this case)
 var db = require("./models");
 
 // Scraping tools
 // =============================================================
 // Axios is a promised-based http library, similar to jQuery's Ajax method
-// It works on the client and on the server
+//  It works on the client and on the server
+// Cheerio parses markup and provides an API for traversing/manipulating the resulting data structure.
 var axios = require("axios");
 var cheerio = require("cheerio");
 
@@ -25,8 +27,9 @@ var port = process.env.PORT || 3002;
 // =============================================================
 app.use(express.static("public"));
 
-// Parse application/x-www-form-urlencoded
+// Configure our app for morgan and body parser
 // =============================================================
+app.use(logger("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // Set Handlebars as the default templating engine.
@@ -47,195 +50,235 @@ mongoose.connect(MONGODB_URI, {
 
 // Routes
 // =============================================================
-
 // Serve index.handlebars to the root route.
-// scrape sites and render to index via handlebars
 // =============================================================
 app.get("/", function(req, res) {
-  //render the response using handlebars
   return res.render("index");
 });
 
-
+// =============================================================
+// This route scrapes all the requested data from 4 Irish News 
+// sources, create and object for each article and inserts the 
+// object into the updateIreland DB - Articles collection
+// =============================================================
 app.get("/scrape", function(req, res) {
-  //delete the collections before searching
+  //delete the collection before searching to prevent duplicate articles
   db.Article.remove({}, function(err) {
     console.log("Articles collection removed");
   });
-
+// =============================================================
+// axios call to The Irish Independent
+// =============================================================
   axios
     .get("https://www.independent.ie/irish-news/news/")
     .then(function(response) {
-      // Then, we load that into cheerio and save it to $ for a shorthand selector
+      // use cheerio and save the HTML to $ for a shorthand selector
       var $ = cheerio.load(response.data);
-      // console.log(response);
+      
+      //iterate through the HTML finding the .w29 class to get the data we want for each article
       $(".w29").each(function(i, element) {
+        //empty object for pushing the article data
         var result = {};
-        //change element to this?
+        //save the article headline
         result.headline = $(this)
           .find("h2")
           .children("span")
           .text();
+        //save the summary
         result.summary = $(this)
           .find("p")
           .text();
+        //save the url for the article
         result.link = $(this)
           .children("a")
           .attr("href");
+        //the source property allows to sort the data once retrieved from the DB
         result.source = "independent";
 
+        //insert the newly created article object into the Mongo DB
         db.Article
           .create(result)
           .then(function(dbArticle) {
-            return res.json(dbArticle);
+            // res.send("Independent Scrape Complete");
+            console.log("Independent Scrape Complete!");
+            // return res.json(dbArticle);
           })
           .catch(function(err) {
             console.log("independent Error!");
             // If an error occurred, send it to the clients
-            return res.json(err);
+            // return res.json(err);
           });
       }); //end w29.each
     })
     .catch(function(err) {
       console.log("Unable to scrape The Independent.");
     }); //end IrishInd axios
-
+    
+// =============================================================
+// axios call to The Irish Times
+// =============================================================
   axios
     .get("https://www.irishtimes.com/news/ireland")
     .then(function(response) {
-      // Then, we load that into cheerio and save it to $ for a shorthand selector
+      // use cheerio and save the HTML to $ for a shorthand selector
       var $ = cheerio.load(response.data);
-      // console.log(response);
+      //iterate through the HTML finding the .span4 class to get the data we want for each article
       $(".span4").each(function(i, element) {
+        //empty object for pushing the article data
         var result = {};
-
+        //save the article headline
         result.headline = $(this)
           .find(".h2")
           .text()
           .trim();
-        // console.log("result.headline: "+result.headline);
-
+        //save the summary
         result.summary = $(this)
           .find("p")
           .children("a")
           .text()
           .trim();
-        // console.log("result.summary: "+result.summary);
-
+        //complete the partially provided link to the article
         let concatLink =
           "https://www.irishtimes.com" +
           $(this)
             .children("a")
             .attr("href")
             .trim();
-        // console.log("concatLink: "+concatLink);
+        //save the link to the object
         result.link = concatLink;
+        //the source property allows to sort the data once retrieved from the DB
         result.source = "times";
-
+        //insert the newly created article object into the Mongo DB
         db.Article
           .create(result)
           .then(function(dbArticle) {
-            return res.json(dbArticle);
+            // console.log("TimesScrape Complete!");
+
+            // res.send("Times Scrape Complete");
+            // return res.json(dbArticle);
           })
           .catch(function(err) {
             console.log("times Error!");
             // If an error occurred, send it to the clients
-            return res.json(err);
+            // return res.json(err);
           });
-      }); //end w29.each
+      }); //end span4.each
     })
     .catch(function(err) {
       console.log("Unable to scrape The Irish Times.");
     }); //end IrishTimes axios
+
+// =============================================================
+// axios call to Midwest Irish Radio
+// =============================================================
   axios
     .get("http://www.midwestradio.ie/index.php/news")
     .then(function(response) {
-      // Then, we load that into cheerio and save it to $ for a shorthand selector
+      // use cheerio and save the HTML to $ for a shorthand selector
       var $ = cheerio.load(response.data);
-      // console.log(response);
+      //iterate through the HTML finding the .list-title class to get the data we want for each article
       $(".list-title").each(function(i, element) {
+        //empty object for pushing the article data
         var result = {};
-
+        //save the article headline
         result.headline = $(this)
           .children("a")
           .text()
           .trim();
-        // console.log("result.headline: "+result.headline);
-
+        //complete the partially provided link to the article
         let concatLink =
           "http://www.midwestradio.ie" +
           $(this)
             .children("a")
             .attr("href");
-        // console.log("concatLink: "+concatLink);
+        //save the link to the object
         result.link = concatLink;
+        //the source property allows to sort the data once retrieved from the DB
         result.source = "midwest";
-
+        //insert the newly created article object into the Mongo DB
         db.Article
           .create(result)
           .then(function(dbArticle) {
-            return res.json(dbArticle);
+            console.log("Midwest Scrape Complete!");
+
+            // res.send("Midwest Scrape Complete");
           })
           .catch(function(err) {
-            console.log("midwest Error!");
+            console.log("Midwest Error!");
             // If an error occurred, send it to the clients
-            return res.json(err);
+            // return res.json(err);
           });
+      }); //end list-title.each
+    })
+    .catch(function(err) {
+      console.log("Unable to scrape Midwest Radio.");
+    }); //end midwest axios
+
+
+// =============================================================
+// axios call to RTE
+// =============================================================
+  axios
+    .get("https://www.rte.ie/news/ireland/")
+    .then(function(response) {
+      // use cheerio and save the HTML to $ for a shorthand selector
+      var $ = cheerio.load(response.data);
+      //iterate through the HTML finding the .pillar-news class to get the data we want for each article
+      $(".pillar-news").each(function(i, element) {
+        //empty object for pushing the article data
+        var result = {};
+        //save the article headline
+        result.headline = $(this)
+          .find(".underline")
+          .text()
+          .trim();
+        //complete the partially provided link to the article
+        let concatLink =
+          "https://www.rte.ie" +
+          $(this)
+            .children("a")
+            .attr("href");
+        //save the link to the object
+        result.link = concatLink;
+        //the source property allows to sort the data once retrieved from the DB
+        result.source = "rte";
+
+        // ensure that all articles pushed into the DB have a link
+        if (
+          $(this)
+            .children("a")
+            .attr("href") != undefined
+        ) {
+          //insert the newly created article object into the Mongo DB
+          db.Article
+            .create(result)
+            .then(function(dbArticle) {
+              res.send("RTE Scrape Complete");
+            })
+            .catch(function(err) {
+              console.log("RTE Error!");
+              // If an error occurred, send it to the clients
+              // return res.json(err);
+            });
+        }
       }); //end w29.each
-    }) .catch(function(err){
-      console.log("Unable to scrape Midwest Radio.")
-  }) //end midwest axios
-
-  axios.get("https://www.rte.ie/news/ireland/").then(function(response) {
-    // Then, we load that into cheerio and save it to $ for a shorthand selector
-    var $ = cheerio.load(response.data);
-    // console.log(response);
-    $(".pillar-news").each(function(i, element) {
-      var result = {};
-
-      result.headline = $(this)
-        .find(".underline")
-        .text()
-        .trim();
-      // console.log("result.headline: " + result.headline);
-
-      let concatLink =
-        "https://www.rte.ie" +
-        $(this)
-          .children("a")
-          .attr("href");
-      // console.log("concatLink: " + concatLink);
-      result.link = concatLink;
-      result.source = "rte";
-
-      if (
-        $(this)
-          .children("a")
-          .attr("href") != undefined
-      ) {
-        db.Article
-          .create(result)
-          .then(function(dbArticle) {
-            return res.json(dbArticle);
-          })
-          .catch(function(err) {
-            console.log("rte Error!");
-            // If an error occurred, send it to the clients
-            return res.json(err);
-          });
-      }
-    }); //end w29.each
-  }).catch(function(err){
-    console.log("Unable to scrape RTE.")
-}) //end rte axios
+    })
+    .catch(function(err) {
+      console.log("Unable to scrape RTE.");
+    }); //end rte axios
 });
+
+
+// =============================================================
+// API route that pull all the articles from the article collection
+// =============================================================
 
 app.get("/articles", function(req, res) {
   db.Article
     .find({})
-    .then(function(dbIrishTimes) {
-      // If all Notes are successfully found, send them back to the client
-      return res.json(dbIrishTimes);
+    .then(function(dbArticle) {
+      // if the request was successful, send back the Article data
+      return res.json(dbArticle);
     })
     .catch(function(err) {
       // If an error occurs, send the error back to the client

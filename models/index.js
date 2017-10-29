@@ -1,10 +1,5 @@
-// Exporting an object containing all of our models
+// Exporting an object containing the articles model
 
 module.exports = {
   Article: require("./Article"),
-  // IrishTimes: require("./irishTimes"),
-  // IrishInd: require("./irishInd"),
-  // Midwest: require("./midwest"),
-  // Rte: require("./rte")
-  // // Note: require("./Note")
 };
