@@ -99,14 +99,10 @@ app.get("/scrape", function(req, res) {
         db.Article
           .create(result)
           .then(function(dbArticle) {
-            // res.send("Independent Scrape Complete");
             console.log("Independent Scrape Complete!");
-            // return res.json(dbArticle);
           })
           .catch(function(err) {
             console.log("independent Error!");
-            // If an error occurred, send it to the clients
-            // return res.json(err);
           });
       }); //end w29.each
     });
@@ -159,12 +155,13 @@ app.get("/scrape", function(req, res) {
   // axios call to Midwest Irish Radio
   // =============================================================
   axios
-    .get("http://www.midwestradio.ie/index.php/news")
+    .get("http://www.midwestradio.ie/index.php/news-latest")
     .then(function(response) {
+      
       // use cheerio and save the HTML to $ for a shorthand selector
       var $ = cheerio.load(response.data);
-      //iterate through the HTML finding the .list-title class to get the data we want for each article
-      $(".list-title").each(function(i, element) {
+      //iterate through the HTML finding the ".allmode-title" class to get the data we want for each article
+      $(".allmode-title").each(function(i, element) {
         //empty object for pushing the article data
         var result = {};
         //save the article headline
@@ -187,12 +184,10 @@ app.get("/scrape", function(req, res) {
           .create(result)
           .then(function(dbArticle) {
             console.log("Midwest Scrape Complete!");
-            // res.send("Midwest Scrape Complete");
           })
           .catch(function(err) {
             console.log("Midwest Error!");
             // If an error occurred, send it to the clients
-            // return res.json(err);
           });
       }); //end list-title.each
     }); //end midwest axios
@@ -237,8 +232,6 @@ app.get("/scrape", function(req, res) {
           })
           .catch(function(err) {
             console.log("RTE Error!");
-            // If an error occurred, send it to the clients
-            // return res.json(err);
           });
       }
     }); //end pillar-news.each
