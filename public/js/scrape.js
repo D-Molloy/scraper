@@ -17,15 +17,7 @@ $(document).ready(function() {
     $("#midwest-results").empty();
     $("#rte-results").empty();
     populateDivs();
-    //call the /scrape route to get the article data
-    // $.ajax({
-    //   method: "GET",
-    //   url: "/scrape"
-    // }).done(function(data) {
-    //   //once the scrape is done, wait one second and then call the populateDivs function
-    //   // setTimeout(populateDivs, 2 * 1000);
-     
-    // }); //end done
+
   }); //end event handler
 });
 
