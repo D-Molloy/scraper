@@ -155,12 +155,13 @@ app.get("/scrape", function(req, res) {
   // axios call to Midwest Irish Radio
   // =============================================================
   axios
+
     .get("http://www.midwestradio.ie/index.php/news-latest")
     .then(function(response) {
-      
+      console.log("this is the response: ",response.data)
       // use cheerio and save the HTML to $ for a shorthand selector
       var $ = cheerio.load(response.data);
-      //iterate through the HTML finding the ".allmode-title" class to get the data we want for each article
+      //iterate through the HTML finding the .list-title class to get the data we want for each article
       $(".allmode-title").each(function(i, element) {
         //empty object for pushing the article data
         var result = {};
